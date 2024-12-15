@@ -12,6 +12,8 @@ import (
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/pokt-network/poktroll/pkg/client"
+
+	"github.com/pokt-network/libpoktroll-clients/memory"
 )
 
 //export NewBlockQueryClient
@@ -20,10 +22,10 @@ func NewBlockQueryClient(cometWebsocketURL *C.char, cErr **C.char) C.go_ref {
 	blockQueryClient, err := sdkclient.NewClientFromNode(C.GoString(cometWebsocketURL))
 	if err != nil {
 		*cErr = C.CString(err.Error())
-		return C.go_ref(NilGoRef)
+		return C.go_ref(memory.NilGoRef)
 	}
 
-	return C.go_ref(SetGoMem(blockQueryClient))
+	return C.go_ref(memory.SetGoMem(blockQueryClient))
 }
 
 //export BlockQuery_ClientBlock
@@ -38,18 +40,18 @@ func BlockQuery_ClientBlock(clientRef C.go_ref, cHeight *C.int64_t, cErr **C.cha
 	ctx := context.Background()
 
 	blockQueryClient, err :=
-		GetGoMem[client.BlockQueryClient](GoRef(clientRef))
+		memory.GetGoMem[client.BlockQueryClient](memory.GoRef(clientRef))
 	if err != nil {
 		*cErr = C.CString(err.Error())
-		return C.go_ref(NilGoRef)
+		return C.go_ref(memory.NilGoRef)
 	}
 
 	resultBlock, err := blockQueryClient.Block(ctx, height)
 	if err != nil {
 		*cErr = C.CString(err.Error())
-		return C.go_ref(NilGoRef)
+		return C.go_ref(memory.NilGoRef)
 	}
 
 	// TODO_IN_THIS_COMMIT: return C-native struct.
-	return C.go_ref(SetGoMem(resultBlock))
+	return C.go_ref(memory.SetGoMem(resultBlock))
 }

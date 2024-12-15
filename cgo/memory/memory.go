@@ -1,4 +1,4 @@
-package main
+package memory
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/../include
