@@ -1,16 +1,53 @@
-package multi_client
+package main
 
 import (
+	"context"
+
 	"cosmossdk.io/depinject"
 	cosmosclient "github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/pokt-network/poktroll/app"
 	"github.com/pokt-network/poktroll/pkg/client"
 	"github.com/pokt-network/poktroll/pkg/client/query"
+	sharedtypes "github.com/pokt-network/poktroll/x/shared/types"
+	"github.com/spf13/pflag"
 )
 
 var _ MultiQueryClient = (*queryClient)(nil)
 
 // TODO_IN_THIS_COMMIT: godoc...
-func NewMultiQueryClient(deps depinject.Config, cometWebsocketURL string) (MultiQueryClient, error) {
+// Required dependencies:
+//   - cosmosclient.Context (gogogrpc.ClientConn)
+//   - client.BlockQueryClient
+func NewMultiQueryClient(deps depinject.Config, queryNodeRPCURL string) (MultiQueryClient, error) {
+	// TODO_IMPROVE: This should be parameterized.
+	homedir := app.DefaultNodeHome
+	clientCtx := cosmosclient.Context{}.
+		WithCodec(cdc).
+		WithTxConfig(TxConfig).
+		WithHomeDir(homedir).
+		WithAccountRetriever(authtypes.AccountRetriever{}).
+		WithInterfaceRegistry(InterfaceRegistry)
+
+	flagSet := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	// TODO_IMPROVE: It would be nice if the value could be set correctly based
+	// on whether the test using it is running in tilt or not.
+	flagSet.String(flags.FlagNode, queryNodeRPCURL, "")
+	flagSet.String(flags.FlagHome, "", homedir)
+	flagSet.String(flags.FlagChainID, app.Name, "use poktroll chain-id")
+	err := flagSet.Parse([]string{})
+	if err != nil {
+		return nil, err
+	}
+
+	clientCtx, err = cosmosclient.ReadPersistentCommandFlags(clientCtx, flagSet)
+	if err != nil {
+		return nil, err
+	}
+
+	deps = depinject.Configs(deps, depinject.Supply(clientCtx))
+
 	accountQuerier, err := query.NewAccountQuerier(deps)
 	if err != nil {
 		return nil, err
@@ -21,7 +58,7 @@ func NewMultiQueryClient(deps depinject.Config, cometWebsocketURL string) (Multi
 		return nil, err
 	}
 
-	blockQuerier, err := cosmosclient.NewClientFromNode(cometWebsocketURL)
+	blockQuerier, err := cosmosclient.NewClientFromNode(queryNodeRPCURL)
 	if err != nil {
 		return nil, err
 	}
@@ -85,11 +122,11 @@ type queryClient struct {
 
 // TODO_BLOCKED(@bryanchriswhite poktroll#543): add once available.
 //
-//// TODO_IN_THIS_COMMIT: godoc...
-//func (qc *queryClient) GetSharedParams(ctx context.Context) (*sharedtypes.Params, error) {
-//	return qc.SharedQueryClient.GetParams(ctx)
-//}
-//
+// TODO_IN_THIS_COMMIT: godoc...
+func (qc *queryClient) GetSharedParams(ctx context.Context) (*sharedtypes.Params, error) {
+	return qc.SharedQueryClient.GetParams(ctx)
+}
+
 //// TODO_IN_THIS_COMMIT: godoc...
 //func (qc *queryClient) GetSupplierParams(ctx context.Context) (*suppliertypes.Params, error) {
 //	return qc.SupplierQueryClient.GetParams(ctx)
@@ -112,6 +149,6 @@ type queryClient struct {
 //}
 //
 //// TODO_IN_THIS_COMMIT: godoc...
-// func (qc *queryClient) GetApplicationParams(ctx context.Context) (*apptypes.Params, error) {
-// 	return qc.ApplicationQueryClient.GetParams(ctx)
-// }
+//func (qc *queryClient) GetApplicationParams(ctx context.Context) (*apptypes.Params, error) {
+//	return qc.ApplicationQueryClient.GetParams(ctx)
+//}

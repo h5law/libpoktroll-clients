@@ -1,4 +1,4 @@
-package multi_client
+package main
 
 import (
 	"context"
@@ -27,6 +27,14 @@ type MultiQueryClient interface {
 	SessionQueryClient
 	ServiceQueryClient
 	ProofQueryClient
+
+	GetSharedParams(ctx context.Context) (*sharedtypes.Params, error)
+	//GetApplicationParams(ctx context.Context) (*apptypes.Params, error)
+	//GetSupplierParams(ctx context.Context) (*sharedtypes.Params, error)
+	//GetSessionParams(ctx context.Context) (*sessiontypes.Params, error)
+	//GetServiceParams(ctx context.Context) (*sharedtypes.Params, error)
+	//GetProofParams(ctx context.Context) (*prooftypes.Params, error)
+	//GetTokenomicsParams(ctx context.Context) (*tokenomics.Params, error)
 }
 
 // ApplicationQueryClient defines an interface that enables the querying of the

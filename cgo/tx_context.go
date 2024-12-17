@@ -22,8 +22,6 @@ import (
 	"github.com/pokt-network/poktroll/cmd/poktrolld/cmd"
 	"github.com/pokt-network/poktroll/pkg/client/tx"
 	txtypes "github.com/pokt-network/poktroll/pkg/client/tx/types"
-
-	"github.com/pokt-network/libpoktroll-clients/memory"
 )
 
 var (
@@ -104,7 +102,7 @@ func NewTxContext(tcpURL *C.char, cErr **C.char) C.go_ref {
 		return 0
 	}
 
-	return C.go_ref(memory.SetGoMem(txCtx))
+	return SetGoMem(txCtx)
 }
 
 // TODO_IN_THIS_COMMIT: godoc...

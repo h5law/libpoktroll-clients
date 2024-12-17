@@ -9,19 +9,17 @@ import (
 	"unsafe"
 
 	"cosmossdk.io/depinject"
-
-	"github.com/pokt-network/libpoktroll-clients/memory"
 )
 
 //export Supply
-func Supply(goRef C.GoRef, cErr **C.char) C.go_ref {
-	toSupply, err := memory.GetGoMem[any](goRef)
+func Supply(goRef C.go_ref, cErr **C.char) C.go_ref {
+	toSupply, err := GetGoMem[any](goRef)
 	if err != nil {
 		*cErr = C.CString(err.Error())
 		return 0
 	}
 
-	return C.go_ref(memory.SetGoMem(depinject.Supply(toSupply)))
+	return SetGoMem(depinject.Supply(toSupply))
 }
 
 //export SupplyMany
@@ -38,17 +36,17 @@ func SupplyMany(goRefs *C.go_ref, numGoRefs C.int, cErr **C.char) C.go_ref {
 
 	var toSupply []any
 	for _, ref := range refs {
-		valueToSupply, err := memory.GetGoMem[any](memory.GoRef(ref))
+		valueToSupply, err := GetGoMem[any](ref)
 		if err != nil {
 			*cErr = C.CString(err.Error())
 			//*cErr = C.CString(fmt.Sprintf("%+v", err))
-			return C.go_ref(memory.NilGoRef)
+			return C.go_ref(NilGoRef)
 		}
 
 		toSupply = append(toSupply, valueToSupply)
 	}
 
-	return C.go_ref(memory.SetGoMem(depinject.Supply(toSupply...)))
+	return SetGoMem(depinject.Supply(toSupply...))
 }
 
 //export Config
@@ -57,7 +55,7 @@ func Config(goRefs *C.go_ref, numGoRefs C.int, cErr **C.char) C.go_ref {
 
 	var configs []depinject.Config
 	for _, ref := range refs {
-		cfg, err := memory.GetGoMem[depinject.Config](memory.GoRef(ref))
+		cfg, err := GetGoMem[depinject.Config](ref)
 		if err != nil {
 			*cErr = C.CString(err.Error())
 			return 0
@@ -66,5 +64,5 @@ func Config(goRefs *C.go_ref, numGoRefs C.int, cErr **C.char) C.go_ref {
 		configs = append(configs, cfg)
 	}
 
-	return C.go_ref(memory.SetGoMem(depinject.Configs(configs...)))
+	return SetGoMem(depinject.Configs(configs...))
 }

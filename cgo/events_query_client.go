@@ -13,8 +13,6 @@ import (
 	"github.com/pokt-network/poktroll/pkg/client/events"
 
 	"github.com/pokt-network/poktroll/pkg/client"
-
-	"github.com/pokt-network/libpoktroll-clients/memory"
 )
 
 //export NewEventsQueryClient
@@ -23,7 +21,7 @@ func NewEventsQueryClient(cometWebsocketURLCString *C.char) C.go_ref {
 	cometWebsocketURL := C.GoString(cometWebsocketURLCString)
 	eventsQueryClient := events.NewEventsQueryClient(cometWebsocketURL)
 
-	return C.go_ref(memory.SetGoMem(eventsQueryClient))
+	return SetGoMem(eventsQueryClient)
 }
 
 //export EventsQueryClientEventsBytes
@@ -32,17 +30,17 @@ func EventsQueryClientEventsBytes(clientRef C.go_ref, query *C.char, cErr **C.ch
 	ctx := context.Background()
 
 	eventsQueryClient, err :=
-		memory.GetGoMem[client.EventsQueryClient](memory.GoRef(clientRef))
+		GetGoMem[client.EventsQueryClient](clientRef)
 	if err != nil {
 		*cErr = C.CString(err.Error())
-		return C.go_ref(memory.NilGoRef)
+		return C.go_ref(NilGoRef)
 	}
 
 	eventsBytesObs, err := eventsQueryClient.EventsBytes(ctx, C.GoString(query))
 	if err != nil {
 		*cErr = C.CString(err.Error())
-		return C.go_ref(memory.NilGoRef)
+		return C.go_ref(NilGoRef)
 	}
 
-	return C.go_ref(memory.SetGoMem(eventsBytesObs))
+	return SetGoMem(eventsBytesObs)
 }
